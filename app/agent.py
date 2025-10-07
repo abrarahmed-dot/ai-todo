@@ -26,14 +26,25 @@ def create_agent_executor(api_key: str, app: TodoApp) -> AgentExecutor:
         "- delete_task_tool(task_id)\n"
         "- get_weather(location, date='today'|'tomorrow')\n"
         "If the user asks for CRUD on tasks, pick the matching tool."
+        "Rules: Before creating a new task, first check if it already exists (by title, allow fuzzy match) using get_task_status_tool or by listing tasks."
+        "If it exists, prefer update_task_tool over add_task_tool. If it's already completed and the user asks to complete it again, just confirm."
     )
 
     prompt = ChatPromptTemplate.from_messages([
         (
             "system",
-            "You are an assistant for a CLI Todo app. "
-            "Return succinct, user-friendly text. If input is unclear, make a best effort.\n\n"
+            "You are an AI assistant for a CLI Todo app.\n"
+            "Your job is to convert any actionable or scheduled request—anything the user says they want or need to do—"
+            "into a todo task, unless the request clearly asks for something else (like weather info).\n\n"
+
+            "Never ask the user what they mean if you can take a reasonable guess. "
+            "If the user is vague, make a task with the information you have, and note what is missing if needed.\n"
+            "For example: If the user says 'I need to watch a movie,' create a task titled 'Watch a movie'. "
+            "If the date or details are missing, leave them blank or as None. Use today’s date for immediate tasks "
+            "unless another date is specified.\n"
+            
             + tool_help,
+            
         ),
         ("human", "{input}"),
         # REQUIRED for tool-calling agent
