@@ -3,3 +3,7 @@ langchain
 langchain_core
 dotenv
 langchain_openai
+'fastapi[all]'
+
+
+
